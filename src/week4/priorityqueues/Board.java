@@ -1,7 +1,5 @@
 package week4.priorityqueues;
 
-import edu.princeton.cs.algs4.StdRandom;
-
 import java.util.Iterator;
 
 public class Board {
@@ -9,7 +7,6 @@ public class Board {
     private final int[][] tiles;
 
     private final int n;
-
     private int emptyRow;
     private int emptyCol;
 
@@ -58,9 +55,7 @@ public class Board {
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                if ((tiles[i][j]) != ((j + i * n + 1) % (Math.pow(n, 2)))) {
-                    count++;
-                }
+                if (tiles[i][j] != 0 && (tiles[i][j]) != ((j + i * n + 1) % (Math.pow(n, 2)))) count++;
             }
         }
 
@@ -74,12 +69,7 @@ public class Board {
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 int tile = tiles[i][j];
-
-                if (tile == 0) {
-                    dist += ((n-1) - j) + ((n-1) - i);
-                } else {
-                    dist += Math.abs(((tile - 1) / n) - i) + Math.abs(((tile - 1) % n) - j);
-                }
+                if (tile != 0) dist += Math.abs(((tile - 1) / n) - i) + Math.abs(((tile - 1) % n) - j);
             }
         }
 
@@ -88,11 +78,15 @@ public class Board {
 
     // is this board the goal board?
     public boolean isGoal() {
+
+        if (tiles[n-1][n-1] != 0) return false;
+
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 if ((tiles[i][j]) != ((j + i * n + 1) % (Math.pow(n, 2)))) return false;
             }
         }
+
         return true;
     }
 
@@ -102,7 +96,9 @@ public class Board {
 
         if (y == this) return true;
 
-        if (!(y instanceof Board board)) return false;
+        if (!(y instanceof Board)) return false;
+
+        Board board = (Board) y;
 
         if (board.dimension() != n) return false;
 
@@ -151,25 +147,29 @@ public class Board {
             }
 
             switch (side) {
-                case 1 -> {
+                case 1 : {
                     int tile = neighbor[emptyRow - 1][emptyCol];
                     neighbor[emptyRow - 1][emptyCol] = 0;
                     neighbor[emptyRow][emptyCol] = tile;
+                    break;
                 }
-                case 2 -> {
+                case 2 : {
                     int tile = neighbor[emptyRow][emptyCol - 1];
                     neighbor[emptyRow][emptyCol - 1] = 0;
                     neighbor[emptyRow][emptyCol] = tile;
+                    break;
                 }
-                case 3 -> {
+                case 3 : {
                     int tile = neighbor[emptyRow + 1][emptyCol];
                     neighbor[emptyRow + 1][emptyCol] = 0;
                     neighbor[emptyRow][emptyCol] = tile;
+                    break;
                 }
-                case 4 -> {
+                case 4 : {
                     int tile = neighbor[emptyRow][emptyCol + 1];
                     neighbor[emptyRow][emptyCol + 1] = 0;
                     neighbor[emptyRow][emptyCol] = tile;
+                    break;
                 }
             }
             side++;
@@ -186,7 +186,7 @@ public class Board {
             try {
                 moves--;
                 return (swap());
-            } catch (Exception e) {
+            } catch (IndexOutOfBoundsException e) {
                 moves++;
                 side++;
                 return (next());
@@ -196,18 +196,6 @@ public class Board {
 
     // a board that is obtained by exchanging any pair of tiles
     public Board twin() {
-        int ax = 0;
-        int ay = 0;
-
-        int bx = 0;
-        int by = 0;
-
-        while (ax == bx && ay == by) {
-            ax = StdRandom.uniform(n);
-            ay = StdRandom.uniform(n);
-            bx = StdRandom.uniform(n);
-            by = StdRandom.uniform(n);
-        }
 
         int[][] twin = new int[n][n];
 
@@ -215,33 +203,40 @@ public class Board {
             System.arraycopy(tiles[i], 0, twin[i], 0, n);
         }
 
-        int tile = twin[ax][ay];
-        twin[ax][ay] = twin[bx][by];
-        twin[bx][by] = tile;
+        if (twin[0][0] != 0 && twin[n-1][n-1] != 0) {
+            int tile = twin[0][0];
+            twin[0][0] = twin[n-1][n-1];
+            twin[n-1][n-1] = tile;
+        } else {
+            int tile = twin[0][n-1];
+            twin[0][n-1] = twin[n-1][0];
+            twin[n-1][0] = tile;
+        }
 
         return new Board(twin);
     }
 
     // unit testing (not graded)
     public static void main(String[] args) {
-        int[][] tiles = new int[][] {new int[]{1, 0, 2}, new int[]{3, 4, 5}, new int[]{6, 7, 8}};
-        //int[][] goal = new int[][] {new int[]{1, 2, 3}, new int[]{4, 5, 6}, new int[]{8, 7, 0}};
-        //int[][] goal2 = new int[][] {new int[]{1, 2}, new int[]{3, 0}};
 
-        Board board = new Board(tiles);
+        Board board = new Board(new int[][] {new int[]{0, 1, 3}, new int[]{4, 2, 5}, new int[]{7, 8, 6}});
 
         System.out.println(board);
-        //System.out.println(board.dimension());
-        //System.out.println(board.hamming());
-        //System.out.println(board.manhattan());
+
+        System.out.println(board.dimension());
+
+        System.out.println(board.hamming());
+
+        System.out.println(board.manhattan());
+
         System.out.println(board.isGoal());
-        //System.out.println(board.equals(new Board(goal)));
-        //System.out.println(board.equals(new Board(goal2)));
+
+        System.out.println(board.equals(new Board(new int[][] {new int[]{0, 3, 1}, new int[]{4, 2, 5}, new int[]{7, 8, 6}})));
 
         for (Board neighbor : board.neighbors()) {
             System.out.println(neighbor);
         }
 
-        //System.out.println(board.twin());
+        System.out.println(board.twin());
     }
 }
